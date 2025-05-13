@@ -4,14 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5857c4c-6bd1-43ea-b700-5d67ef6a6577" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Pis.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/RomaniaWantsPis.py" afterDir="false" />
+    <list default="true" id="b5857c4c-6bd1-43ea-b700-5d67ef6a6577" name="Changes" comment="sa fie">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RomaniaWantsPis.py" beforeDir="false" afterPath="$PROJECT_DIR$/RomaniaWantsPis.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +34,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.RomaniaWantsPis.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true"
   },
@@ -64,6 +60,19 @@
       <option name="presentableId" value="Default" />
       <updated>1746883693439</updated>
     </task>
+    <task id="LOCAL-00001" summary="sa fie">
+      <option name="closed" value="true" />
+      <created>1746884549438</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1746884549438</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="sa fie" />
+    <option name="LAST_COMMIT_MESSAGE" value="sa fie" />
   </component>
 </project>
