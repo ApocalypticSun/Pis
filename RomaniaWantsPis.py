@@ -6,6 +6,8 @@ from sklearn.preprocessing import MinMaxScaler
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
+import time
+
 
 class ImageSegmenter:
     def __init__(self, image_path):
@@ -39,16 +41,19 @@ class ImageSegmenter:
         if arg_type == "binary":
             _, binary = cv2.threshold(self.gray, threshold, 255, cv2.THRESH_BINARY)
         elif arg_type == "adaptive_gaussian":
-            binary = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, block_size, constant)
+            binary = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,
+                                           block_size, constant)
         elif arg_type == "adaptive_mean":
-            binary = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size, constant)
+            binary = cv2.adaptiveThreshold(self.gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, block_size,
+                                           constant)
         elif arg_type == "otsu":
             _, binary = cv2.threshold(self.gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         else:
             _, binary = cv2.threshold(self.gray, threshold, 255, cv2.THRESH_BINARY)
         return binary
 
-    def watershed_segmentation(self, gaussian_ksize=5, binary_thresh=0, opening_iter=2, dilate_iter=3, dist_thresh=0.7, kernel_size=3):
+    def watershed_segmentation(self, gaussian_ksize=5, binary_thresh=0, opening_iter=2, dilate_iter=3, dist_thresh=0.7,
+                               kernel_size=3):
         blurred = cv2.GaussianBlur(self.gray, (gaussian_ksize, gaussian_ksize), 0)
         _, thresh = cv2.threshold(blurred, binary_thresh, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         kernel = np.ones((kernel_size, kernel_size), np.uint8)
@@ -80,35 +85,104 @@ class ImageSegmenter:
         segmented_image = segmented_image.reshape(self.image.shape)
         return segmented_image
 
+
 class SegmentationGUI:
     def __init__(self, root):
         self.root = root
+        self.root.configure(bg='#FF69B4')  # Bright pink background
         self.segmenter = None
         self.current_image = None
+
+        style = ttk.Style()
+        style.configure('TFrame', background='#FF69B4')
+        style.configure('TLabel', background='#FF69B4', foreground='black', font=('Arial', 10, 'bold'))
+        style.configure('TButton', background='#FF1493', foreground='white', font=('Arial', 10, 'bold'))
+        style.configure('TLabelFrame', background='#FF69B4', foreground='black', font=('Arial', 10, 'bold'))
+        style.configure('TScale', background='#FF69B4')
+        style.configure('TMenubutton', background='#FF1493', foreground='white', font=('Arial', 10, 'bold'))
+
         self.main_frame = ttk.Frame(root)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
+
         self.image_panel = ttk.Label(self.main_frame)
-        self.image_panel.pack(side=tk.LEFT, padx=10, pady=10)
-        self.control_panel = ttk.Frame(self.main_frame)
+        self.image_panel.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        self.control_panel = ttk.Frame(self.main_frame, width=300)
         self.control_panel.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.Y)
+
         self.load_btn = ttk.Button(self.control_panel, text="Load Image", command=self.load_image)
         self.load_btn.pack(fill=tk.X, pady=5)
+
         self.method_var = tk.StringVar(value="binary")
         self.method_label = ttk.Label(self.control_panel, text="Segmentation Method:")
         self.method_label.pack(anchor=tk.W)
+
         methods = ["binary", "adaptive_gaussian", "adaptive_mean", "otsu", "watershed", "clustering"]
-        self.method_menu = ttk.OptionMenu(self.control_panel, self.method_var, "binary", *methods, command=lambda _: self.update_controls())
+        self.method_menu = ttk.OptionMenu(self.control_panel, self.method_var, "binary", *methods,
+                                          command=lambda _: self.update_controls())
         self.method_menu.pack(fill=tk.X, pady=5)
+
         self.params_frame = ttk.LabelFrame(self.control_panel, text="Parameters")
         self.params_frame.pack(fill=tk.X, pady=5)
+
         self.btn_frame = ttk.Frame(self.control_panel)
         self.btn_frame.pack(fill=tk.X, pady=5)
+
         self.update_btn = ttk.Button(self.btn_frame, text="Update", command=self.update_image)
         self.update_btn.pack(side=tk.LEFT, expand=True, padx=2)
+
         self.reset_btn = ttk.Button(self.btn_frame, text="Reset", command=self.reset_params)
         self.reset_btn.pack(side=tk.LEFT, expand=True, padx=2)
+
         self.sliders = {}
         self.update_controls()
+
+        self.root.bind('<Configure>', self.on_window_resize)
+        self.root.state('zoomed')
+        self.last_resize_time = 0
+
+    def on_window_resize(self, event):
+        if event.widget == self.root:
+            current_time = time.time()
+            if current_time - self.last_resize_time > 0.1:
+                if hasattr(self, 'current_image') and self.current_image is not None:
+                    self.update_image_display()
+                self.last_resize_time = current_time
+
+    def update_image_display(self):
+        if self.current_image is None:
+            return
+
+        img_pil = Image.fromarray(self.current_image)
+
+        control_panel_width = 350
+        min_margin = 20
+        window_width = max(1, self.root.winfo_width() - control_panel_width)
+        window_height = max(1, self.root.winfo_height() - min_margin)
+
+        original_width, original_height = img_pil.size
+        if original_height == 0:
+            aspect_ratio = 1.0
+        else:
+            aspect_ratio = original_width / original_height
+
+        if window_width / window_height > aspect_ratio:
+            new_width = int(window_height * aspect_ratio)
+            new_height = window_height
+        else:
+            new_width = window_width
+            new_height = int(window_width / aspect_ratio)
+
+        new_width = max(1, new_width)
+        new_height = max(1, new_height)
+
+        try:
+            img_resized = img_pil.resize((new_width, new_height), Image.LANCZOS)
+            img_tk = ImageTk.PhotoImage(img_resized)
+            self.image_panel.config(image=img_tk)
+            self.image_panel.image = img_tk
+        except Exception as e:
+            print(f"Error resizing image: {e}")
 
     def load_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png;*.bmp")])
@@ -143,7 +217,7 @@ class SegmentationGUI:
             self.add_slider("Binary Threshold", 0, 255, params.get("binary_thresh", 0))
             self.add_slider("Opening Iterations", 1, 10, params.get("opening_iter", 2))
             self.add_slider("Dilate Iterations", 1, 10, params.get("dilate_iter", 3))
-            self.add_slider("Distance Thresh %", 10, 90, int(params.get("dist_thresh", 0.7)*100))
+            self.add_slider("Distance Thresh %", 10, 90, int(params.get("dist_thresh", 0.7) * 100))
             self.add_slider("Morph Kernel Size", 1, 15, params.get("kernel_size", 3), step=2)
         elif method in ["adaptive_gaussian", "adaptive_mean"]:
             self.add_slider("Block Size", 3, 31, 11, step=2)
@@ -161,7 +235,8 @@ class SegmentationGUI:
         val_label = ttk.Label(frame, textvariable=current_val, width=4)
         val_label.pack(side=tk.RIGHT)
         slider = ttk.Scale(frame, from_=min_val, to=max_val, value=default_val, orient=tk.HORIZONTAL,
-                         command=lambda v, tv=current_val, s=step: tv.set(str(int(float(v)))) if s == 1 else tv.set(str(int(float(v)) // 2 * 2 + 1)), length=150)
+                           command=lambda v, tv=current_val, s=step: tv.set(str(int(float(v)))) if s == 1 else tv.set(
+                               str(int(float(v)) // 2 * 2 + 1)), length=150)
         slider.pack(side=tk.RIGHT, padx=5, fill=tk.X, expand=True)
         self.sliders[name.lower().replace(" ", "_")] = (slider, current_val)
 
@@ -179,7 +254,7 @@ class SegmentationGUI:
             params["binary_thresh"] = int(float(self.sliders["binary_threshold"][1].get()))
             params["opening_iter"] = int(float(self.sliders["opening_iterations"][1].get()))
             params["dilate_iter"] = int(float(self.sliders["dilate_iterations"][1].get()))
-            params["dist_thresh"] = float(self.sliders["distance_thresh_%"][1].get())/100
+            params["dist_thresh"] = float(self.sliders["distance_thresh_%"][1].get()) / 100
             kernel_val = float(self.sliders["morph_kernel_size"][1].get())
             params["kernel_size"] = max(1, int(kernel_val) // 2 * 2 + 1)
         elif method in ["adaptive_gaussian", "adaptive_mean"]:
@@ -222,16 +297,13 @@ class SegmentationGUI:
             else:
                 img_display = segmented
 
-            img_pil = Image.fromarray(img_display)
-            img_resized = img_pil.resize((600, 500))
-            img_tk = ImageTk.PhotoImage(img_resized)
-            self.image_panel.config(image=img_tk)
-            self.image_panel.image = img_tk
-            self.current_image = segmented
+            self.current_image = img_display
+            self.update_image_display()
             self.segmenter.current_params[method] = params
         except Exception as e:
             print(f"Error during segmentation: {e}")
             messagebox.showerror("Error", f"Segmentation failed: {str(e)}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()

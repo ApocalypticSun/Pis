@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b5857c4c-6bd1-43ea-b700-5d67ef6a6577" name="Changes" comment="sa fie" />
+    <list default="true" id="b5857c4c-6bd1-43ea-b700-5d67ef6a6577" name="Changes" comment="sa fie">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RomaniaWantsPis.py" beforeDir="false" afterPath="$PROJECT_DIR$/RomaniaWantsPis.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -74,10 +77,19 @@
       <option name="project" value="LOCAL" />
       <updated>1747168649043</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="sa fie">
+      <option name="closed" value="true" />
+      <created>1747168789055</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1747168789055</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
+    <MESSAGE value="Merge remote-tracking branch 'Pis/master'&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;RomaniaWantsPis.py" />
     <MESSAGE value="sa fie" />
     <option name="LAST_COMMIT_MESSAGE" value="sa fie" />
   </component>
