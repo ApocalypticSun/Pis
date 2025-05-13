@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.segmentation import watershed
-from skimage.feature import peak_local_max
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 
@@ -15,17 +14,33 @@ class ImageSegmenter:
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
 
-    def region_based_segmentation(self, threshold=128):
-        """Segmentare bazată pe regiuni folosind praguri"""
-        _, binary = cv2.threshold(self.gray, threshold, 255, cv2.THRESH_BINARY)
+    def region_based_segmentation(self, arg_type, threshold=128):
+        # valori pentru argumentul "type":
+        #    "binary" / "adaptive_gaussian" / "adaptive_mean" / "otsu"
+        #    - reflectă diversele tipuri de segmentare bazată pe regiune
+        #
+        # valori pentru argumentul "threshold":
+        #    0-100 => vor fi detectate zone mai întunecate
+        #    100-200 => vor fi detectate zone mai luminoase
+
+        if arg_type == "binary":
+            _, binary = cv2.threshold(self.gray, threshold, 255, cv2.THRESH_BINARY)
+        elif arg_type == "adaptive_gaussian":
+            _, binary = cv2.threshold(self.gray, threshold, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C)
+        elif arg_type == "adaptive_mean":
+            _, binary = cv2.threshold(self.gray, threshold, 255, cv2.ADAPTIVE_THRESH_MEAN_C)
+        elif arg_type == "otsu":
+            _, binary = cv2.threshold(self.gray, threshold, 255, cv2.THRESH_OTSU)
+        else:
+            _, binary = cv2.threshold(self.gray, threshold, 255, cv2.THRESH_BINARY)
+
         return binary
 
     def watershed_segmentation(self):
-        """Segmentare folosind algoritmul Watershed"""
         # Aplicăm un filtru Gaussian pentru a reduce zgomotul
         blurred = cv2.GaussianBlur(self.gray, (5, 5), 0)
 
-        # Detectăm zonele sigur de fundal/prima plan folosind thresholding
+        # Detectăm zona sigură de fundal / prim plan folosind thresholding
         _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
         # Eliminăm zgomotul
@@ -49,7 +64,7 @@ class ImageSegmenter:
         _, markers = cv2.connectedComponents(sure_fg)
 
         # Adăugăm 1 la toate etichetele pentru a ne asigura că fundalul este 1, nu 0
-        markers = markers + 1
+        markers += 1
 
         # Marcăm zona necunoscută cu 0
         markers[unknown == 255] = 0
@@ -61,7 +76,6 @@ class ImageSegmenter:
         return markers
 
     def clustering_based_segmentation(self, n_clusters=3):
-        """Segmentare bazată pe clustering (K-means)"""
         # Redimensionăm imaginea pentru K-means
         pixel_values = self.image.reshape((-1, 3))
         pixel_values = np.float32(pixel_values)
@@ -88,9 +102,8 @@ class ImageSegmenter:
 
         return segmented_image
 
-    def display_results(self, original, region_based, watershed, clustering):
-        """Afișează rezultatele segmentării"""
-        plt.figure(figsize=(15, 10))
+    def display_results(self, original, arg_region_based, arg_watershed, arg_clustering):
+        plt.figure(figsize=(12, 8))
 
         plt.subplot(2, 2, 1)
         plt.imshow(original)
@@ -98,18 +111,44 @@ class ImageSegmenter:
         plt.axis('off')
 
         plt.subplot(2, 2, 2)
-        plt.imshow(region_based, cmap='gray')
+        plt.imshow(arg_region_based, cmap='gray')
         plt.title('Segmentare Bazată pe Regiuni')
         plt.axis('off')
 
         plt.subplot(2, 2, 3)
-        plt.imshow(watershed)
+        plt.imshow(arg_watershed)
         plt.title('Segmentare Watershed')
         plt.axis('off')
 
         plt.subplot(2, 2, 4)
-        plt.imshow(clustering)
+        plt.imshow(arg_clustering)
         plt.title('Segmentare Bazată pe Clustering')
+        plt.axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
+    def display_results_region_based(self, arg_binary, arg_adaptive_gaussian, arg_adaptive_mean, arg_otsu):
+        plt.figure(figsize=(12, 8))
+
+        plt.subplot(2, 2, 1)
+        plt.imshow(arg_binary, cmap='gray')
+        plt.title('Segmentare Bazată pe Regiuni - Binar')
+        plt.axis('off')
+
+        plt.subplot(2, 2, 2)
+        plt.imshow(arg_adaptive_gaussian, cmap='gray')
+        plt.title('Segmentare Bazată pe Regiuni - Adaptiv Gaussian')
+        plt.axis('off')
+
+        plt.subplot(2, 2, 3)
+        plt.imshow(arg_adaptive_mean, cmap='gray')
+        plt.title('Segmentare Bazată pe Regiuni - Adaptiv Median')
+        plt.axis('off')
+
+        plt.subplot(2, 2, 4)
+        plt.imshow(arg_otsu, cmap='gray')
+        plt.title('Segmentare Bazată pe Regiuni - Otsu')
         plt.axis('off')
 
         plt.tight_layout()
@@ -123,12 +162,16 @@ if __name__ == "__main__":
         segmenter = ImageSegmenter('imagine_test.jpg')
 
         # Aplicăm metodele de segmentare
-        region_based = segmenter.region_based_segmentation()
+        region_based_binary = segmenter.region_based_segmentation("binary")
+        region_based_adaptive_gaussian = segmenter.region_based_segmentation("adaptive_gaussian")
+        region_based_adaptive_mean = segmenter.region_based_segmentation("adaptive_mean")
+        region_based_otsu = segmenter.region_based_segmentation("otsu")
         watershed = segmenter.watershed_segmentation()
         clustering = segmenter.clustering_based_segmentation()
 
         # Afișăm rezultatele
-        segmenter.display_results(segmenter.image, region_based, watershed, clustering)
+        segmenter.display_results(segmenter.image, region_based_binary, watershed, clustering)
+        segmenter.display_results_region_based(region_based_binary, region_based_adaptive_gaussian, region_based_adaptive_mean, region_based_otsu)
 
     except Exception as e:
         print(f"Eroare: {e}")
