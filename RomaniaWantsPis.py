@@ -10,6 +10,7 @@ import time
 THEME_COLOR_DARK = '#FF1493'
 THEME_COLOR_LIGHT = '#FF69B4'
 
+
 class ImageSegmenter:
     def __init__(self, image_path):
         self.image = cv2.imread(image_path)
@@ -47,6 +48,7 @@ class ImageSegmenter:
         else:
             _, binary = cv2.threshold(self.gray, params.get("threshold", 128), 255, cv2.THRESH_BINARY)
         return binary
+
     def watershed_segmentation(self, **params):
         blurred = cv2.GaussianBlur(self.gray, (params.get("gaussian_ksize", 5), params.get("gaussian_ksize", 5)), 0)
         _, thresh = cv2.threshold(blurred, params.get("binary_thresh", 0), 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -75,6 +77,7 @@ class ImageSegmenter:
         centers = np.uint8(scaler.inverse_transform(kmeans.cluster_centers_))
         segmented_image = centers[labels.flatten()].reshape(self.image.shape)
         return segmented_image
+
 
 class SegmentationGUI:
     def __init__(self, arg_root):
@@ -246,6 +249,7 @@ class SegmentationGUI:
         except Exception as e:
             print(f"Error during segmentation: {e}")
             messagebox.showerror("Error", f"Segmentation failed: {str(e)}")
+
     def save_image(self):
         if self.current_image is None:
             messagebox.showinfo("No Image", "No segmented image to save.")
@@ -261,6 +265,7 @@ class SegmentationGUI:
                 messagebox.showinfo("Saved", f"Image saved to:\n{file_path}")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save image: {str(e)}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
